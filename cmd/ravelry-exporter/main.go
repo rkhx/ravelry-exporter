@@ -39,7 +39,7 @@ func main() {
 
 	start := time.Now()
 	if err := run(ctx); err != nil {
-		log.Fatal().Msgf("%s", err.Error())
+		log.Error().Msgf("%s", err.Error())
 	}
 	log.Info().Dur("uptime", time.Since(start)).Msg("Application exited successfully")
 }
