@@ -77,6 +77,10 @@ func run(ctx context.Context) error {
 
 	spreadsheetID := os.Getenv("SPREADSHEET_ID")
 
-	gapi.Spreadsheet(ctx, spreadsheetID, data, columns)
+	err = gapi.Spreadsheet(ctx, spreadsheetID, data, columns)
+	if err != nil {
+		return fmt.Errorf("error fetching spreadsheet: %w", err)
+	}
+
 	return nil
 }
