@@ -3,6 +3,7 @@ package gapi
 import (
 	"context"
 	"fmt"
+	"github.com/rs/zerolog/log"
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/sheets/v4"
 	"time"
@@ -44,6 +45,7 @@ func Spreadsheet(ctx context.Context, serviceAccountFileContent, spreadsheetID s
 		if err != nil {
 			return err
 		}
+		log.Info().Msg("Spreadsheet created successfully")
 	}
 
 	sheetTitle := fmt.Sprintf("Sheet_%d", time.Now().Unix())
@@ -56,6 +58,7 @@ func Spreadsheet(ctx context.Context, serviceAccountFileContent, spreadsheetID s
 	if err != nil {
 		return fmt.Errorf("failed to add new sheet '%s' to spreadsheet %s: %w", sheetTitle, spreadsheetID, err)
 	}
+	log.Info().Msg("Sheet created successfully")
 
 	sheetID := batchUpdateResponse.Replies[0].AddSheet.Properties.SheetId
 
@@ -110,6 +113,7 @@ func Spreadsheet(ctx context.Context, serviceAccountFileContent, spreadsheetID s
 		if err != nil {
 			return fmt.Errorf("batch update failed for spreadsheet %s: %w", spreadsheetID, err)
 		}
+		log.Info().Msg("Sheet updated successfully")
 	}
 
 	return nil

@@ -29,7 +29,7 @@ func main() {
 				fnName = runtime.FuncForPC(pc).Name()
 			}
 
-			log.Error().
+			log.Fatal().
 				Str("file", file).
 				Int("line", line).
 				Str("function", fnName).
@@ -39,7 +39,7 @@ func main() {
 
 	start := time.Now()
 	if err := run(ctx); err != nil {
-		log.Error().Msgf("%s", err.Error())
+		log.Error().Err(err).Msg("Error occurred")
 	}
 	log.Info().Dur("uptime", time.Since(start)).Msg("Application exited successfully")
 }
@@ -66,17 +66,20 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error fetching username: %w", err)
 	}
+	log.Info().Msg("Current username fetched successfully")
 
 	bundles, err := client.Bundles.GetUserBundles(ctx, username)
 	if err != nil || len(bundles) == 0 {
 		return fmt.Errorf("error fetching bundles or no bundles found: %w", err)
 	}
+	log.Info().Msg("Bundles list fetched successfully")
 
 	id := bundles[0].ID
 	bundle, err := client.Bundles.GetBundleContent(ctx, username, id)
 	if err != nil {
 		return fmt.Errorf("error fetching bundle content: %w", err)
 	}
+	log.Info().Msg("Bundle content fetched successfully")
 
 	var data []gapi.RowData
 
@@ -88,7 +91,7 @@ func run(ctx context.Context) error {
 
 		patternInfo, err := client.Patterns.GetPattern(ctx, aa.Item[0].ID)
 		if err != nil {
-			return fmt.Errorf("Error fetching pattern: %w", err)
+			return fmt.Errorf("error fetching pattern: %w", err)
 		}
 
 		data = append(data, gapi.NewRowData(patternInfo))
