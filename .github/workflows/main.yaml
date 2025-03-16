@@ -32,7 +32,7 @@ jobs:
 
       - name: Run golangci-lint
         run: |
-          GO111MODULE=on $(go env GOPATH)/bin/golangci-lint run ./...
+          GOFLAGS=-mod=mod GO111MODULE=on $(go env GOPATH)/bin/golangci-lint run ./...
 
   test:
     name: Run Unit Tests
