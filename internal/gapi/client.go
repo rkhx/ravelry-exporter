@@ -6,13 +6,11 @@ import (
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
-	"os"
 )
 
 // newGoogleServices creates clients for Google Sheets and Google Drive API
-func newGoogleServices(ctx context.Context) (sheetsSrv *sheets.Service, driveSrv *drive.Service, err error) {
-	content := os.Getenv("SERVICE_ACCOUNT_FILE_CONTENT")
-	cred := option.WithCredentialsJSON([]byte(content))
+func newGoogleServices(serviceAccountFileContent string, ctx context.Context) (sheetsSrv *sheets.Service, driveSrv *drive.Service, err error) {
+	cred := option.WithCredentialsJSON([]byte(serviceAccountFileContent))
 
 	sheetsSrv, err = sheets.NewService(ctx, cred)
 	if err != nil {

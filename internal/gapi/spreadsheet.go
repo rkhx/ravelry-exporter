@@ -33,8 +33,8 @@ func createSpreadsheet(ctx context.Context, driveSrv *drive.Service, sheetsSrv *
 	return spreadsheetID, nil
 }
 
-func Spreadsheet(ctx context.Context, spreadsheetID string, data []RowData, columns []interface{}) error {
-	sheetsSrv, driveSrv, err := newGoogleServices(ctx)
+func Spreadsheet(ctx context.Context, serviceAccountFileContent, spreadsheetID string, data []RowData, columns []interface{}) error {
+	sheetsSrv, driveSrv, err := newGoogleServices(serviceAccountFileContent, ctx)
 	if err != nil {
 		return err
 	}
