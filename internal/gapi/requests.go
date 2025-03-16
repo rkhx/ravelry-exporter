@@ -29,7 +29,7 @@ func getAddSheetRequest(sheetTitle string) *sheets.Request {
 	}
 }
 
-func getSetColumnWidthRequest(sheetID int64, minWidth int64) *sheets.Request {
+func getSetColumnWidthRequest(sheetID, minWidth int64) *sheets.Request {
 	return &sheets.Request{
 		UpdateDimensionProperties: &sheets.UpdateDimensionPropertiesRequest{
 			Range: &sheets.DimensionRange{

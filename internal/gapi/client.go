@@ -10,16 +10,16 @@ import (
 )
 
 // newGoogleServices creates clients for Google Sheets and Google Drive API
-func newGoogleServices(ctx context.Context) (*sheets.Service, *drive.Service, error) {
+func newGoogleServices(ctx context.Context) (sheetsSrv *sheets.Service, driveSrv *drive.Service, err error) {
 	content := os.Getenv("SERVICE_ACCOUNT_FILE_CONTENT")
 	cred := option.WithCredentialsJSON([]byte(content))
 
-	sheetsSrv, err := sheets.NewService(ctx, cred)
+	sheetsSrv, err = sheets.NewService(ctx, cred)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to create Sheets client: %w", err)
 	}
 
-	driveSrv, err := drive.NewService(ctx, cred)
+	driveSrv, err = drive.NewService(ctx, cred)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to create Drive client: %w", err)
 	}

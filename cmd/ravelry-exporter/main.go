@@ -6,14 +6,23 @@ import (
 	"fmt"
 	"github.com/rkhx/ravelry-exporter/internal/gapi"
 	"github.com/rkhx/ravelry-exporter/internal/ravelry"
-	"log"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"os"
 	"os/signal"
 	"runtime"
 	"syscall"
+	"time"
 )
 
 func main() {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	if os.Getenv("LOG_FORMAT") == "pretty" {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
+	} else {
+		log.Logger = zerolog.New(os.Stderr).With().Timestamp().Logger()
+	}
+
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
@@ -21,16 +30,18 @@ func main() {
 		if r := recover(); r != nil {
 			pc, file, line, ok := runtime.Caller(3)
 			if !ok {
-				log.Fatalf("PANIC: %v", r)
+				log.Fatal().Msgf("PANIC: %v", r)
 			}
 			fn := runtime.FuncForPC(pc)
-			log.Fatalf("PANIC: %v in %s:%d (%s)", r, file, line, fn.Name())
+			log.Fatal().Msgf("PANIC: %v in %s:%d (%s)", r, file, line, fn.Name())
 		}
 	}()
 
+	start := time.Now()
 	if err := run(ctx); err != nil {
-		log.Fatal(err)
+		log.Fatal().Msgf("%s", err.Error())
 	}
+	log.Info().Dur("uptime", time.Since(start)).Msg("Application exited successfully")
 }
 
 func run(ctx context.Context) error {

@@ -2,7 +2,10 @@ module github.com/rkhx/ravelry-exporter
 
 go 1.24
 
-require google.golang.org/api v0.226.0
+require (
+	github.com/rs/zerolog v1.33.0
+	google.golang.org/api v0.226.0
+)
 
 require (
 	cloud.google.com/go/auth v0.15.0 // indirect
@@ -15,6 +18,8 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.5 // indirect
 	github.com/googleapis/gax-go/v2 v2.14.1 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.19 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.59.0 // indirect
 	go.opentelemetry.io/otel v1.34.0 // indirect
