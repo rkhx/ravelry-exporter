@@ -7,6 +7,7 @@ type User struct {
 type Bundle struct {
 	ID           int           `json:"id"`
 	Name         string        `json:"name"`
+	Permalink    string        `json:"permalink"`
 	BundledItems []BundledItem `json:"bundled_items"`
 }
 

@@ -1,0 +1,51 @@
+# Binaries and build output
+/dist/
+/build/
+/bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+ravelry-exporter
+ravelry-exporter.app/
+
+# Test and coverage
+*.test
+*.out
+coverage.txt
+coverage.html
+
+# Go workspace
+go.work
+go.work.sum
+
+# Dependencies vendored locally
+/vendor/
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+run.sh
+*.pem
+*.key
+service-account*.json
+credentials*.json
+
+# IDE / editor
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+
+# Logs
+*.log

@@ -1,23 +1,39 @@
-// Main pack
 package main
 
 import (
 	"context"
 	"fmt"
-	"github.com/rkhx/ravelry-exporter/internal/gapi"
-	"github.com/rkhx/ravelry-exporter/internal/ravelry"
+	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/theme"
+	"github.com/rkhx/ravelry-exporter/internal/handlers"
+	"github.com/rkhx/ravelry-exporter/internal/ui"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime"
 	"syscall"
-	"time"
 )
 
-func main() {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339, NoColor: false})
+func credsFileExists() (bool, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return false, fmt.Errorf("cannot determine user home directory: %w", err)
+	}
 
+	credsPath := filepath.Join(homeDir, ".ravelry-exporter", "creds.json")
+	_, err = os.Stat(credsPath)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, fmt.Errorf("error checking creds file: %w", err)
+}
+
+func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
@@ -37,72 +53,17 @@ func main() {
 		}
 	}()
 
-	start := time.Now()
-	if err := run(ctx); err != nil {
-		log.Error().Err(err).Msg("Error occurred")
-	}
-	log.Info().Dur("uptime", time.Since(start)).Msg("Application exited successfully")
-}
+	mainApp := app.New()
+	mainApp.Settings().SetTheme(&ui.CustomTheme{Theme: theme.DefaultTheme()})
 
-func run(ctx context.Context) error {
-	login, password := os.Getenv("RAVELRY_LOGIN"), os.Getenv("RAVELRY_PASSWORD")
-	if login == "" || password == "" {
-		return fmt.Errorf("RAVELRY_LOGIN or RAVELRY_PASSWORD is not set")
+	mainWindow, logContainer := ui.GetWindow(ctx, mainApp, func(ctx context.Context, bundleUrl string) error {
+		return handlers.Run(ctx, bundleUrl)
+	})
+
+	if ok, err := credsFileExists(); !ok || err != nil {
+		ui.ShowSettingsDialog(mainWindow)
 	}
 
-	serviceAccountFileContent := os.Getenv("SERVICE_ACCOUNT_FILE_CONTENT")
-	if serviceAccountFileContent == "" {
-		return fmt.Errorf("SERVICE_ACCOUNT_FILE_CONTENT is not set")
-	}
-
-	spreadsheetID := os.Getenv("SPREADSHEET_ID")
-	if spreadsheetID == "" {
-		log.Warn().Msg("SPREADSHEET_ID is not set, we'll create a new spreadsheet")
-	}
-
-	client := ravelry.NewRavelryClient("https://api.ravelry.com", login, password)
-
-	username, err := client.Users.GetCurrentUsername(ctx)
-	if err != nil {
-		return fmt.Errorf("error fetching username: %w", err)
-	}
-	log.Info().Msg("Current username fetched successfully")
-
-	bundles, err := client.Bundles.GetUserBundles(ctx, username)
-	if err != nil || len(bundles) == 0 {
-		return fmt.Errorf("error fetching bundles or no bundles found: %w", err)
-	}
-	log.Info().Msg("Bundles list fetched successfully")
-
-	id := bundles[0].ID
-	bundle, err := client.Bundles.GetBundleContent(ctx, username, id)
-	if err != nil {
-		return fmt.Errorf("error fetching bundle content: %w", err)
-	}
-	log.Info().Msg("Bundle content fetched successfully")
-
-	var data []gapi.RowData
-
-	for _, item := range bundle.BundledItems {
-		aa, err := client.Bundles.GetBundleItem(ctx, item.ID)
-		if err != nil {
-			return fmt.Errorf("error fetching bundle item: %w", err)
-		}
-
-		patternInfo, err := client.Patterns.GetPattern(ctx, aa.Item[0].ID)
-		if err != nil {
-			return fmt.Errorf("error fetching pattern: %w", err)
-		}
-
-		data = append(data, gapi.NewRowData(patternInfo))
-	}
-
-	columns := []interface{}{"Pattern Name", "Designer", "Gauge, needle size", "Sizes", "Recommended yarn", "Attributes"}
-
-	err = gapi.Spreadsheet(ctx, serviceAccountFileContent, spreadsheetID, data, columns)
-	if err != nil {
-		return fmt.Errorf("error fetching spreadsheet: %w", err)
-	}
-
-	return nil
+	log.Logger = zerolog.New(ui.GetUIReporter(logContainer)).With().Timestamp().Logger()
+	mainWindow.ShowAndRun()
 }

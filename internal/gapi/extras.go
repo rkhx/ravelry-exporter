@@ -2,8 +2,9 @@ package gapi
 
 import (
 	"fmt"
-	"github.com/rkhx/ravelry-exporter/internal/models"
 	"strings"
+
+	"github.com/rkhx/ravelry-exporter/internal/models"
 )
 
 type RowData map[string]interface{}
@@ -17,6 +18,9 @@ type Link struct {
 func NewRowData(p *models.Pattern) RowData {
 	var yarnLinks []Link
 	for _, pack := range p.Packs {
+		if pack.YarnName == "" {
+			continue
+		}
 		yarnLinks = append(yarnLinks, Link{
 			Text:   pack.YarnName,
 			URL:    fmt.Sprintf("www.ravelry.com/yarns/library/%s", pack.Yarn.Permalink),

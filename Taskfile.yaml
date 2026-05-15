@@ -1,0 +1,47 @@
+version: '3'
+
+vars:
+  APP_NAME: ravelry-exporter
+  MAIN_PKG: ./cmd/ravelry-exporter
+
+tasks:
+  build:
+    desc: Build macOS binary
+    cmds:
+      - go build -o bin/{{.APP_NAME}} {{.MAIN_PKG}}
+
+  package:
+    desc: Package as .app bundle for macOS
+    cmds:
+      - fyne package -os darwin -icon ../../icon.png -name "{{.APP_NAME}}" -appID com.example.{{.APP_NAME}} -release -src {{.MAIN_PKG}} -tags "full"
+
+  run:
+    desc: Run the app locally
+    cmds:
+      - go run {{.MAIN_PKG}}
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - rm -rf bin {{.APP_NAME}}.app
+
+  dmg:
+    desc: Create .dmg installer
+    deps: [package]
+    cmds:
+      - rm -rf dist/dmg
+      - mkdir -p dist/dmg
+      - |
+        codesign --deep --force --verbose --sign "Rostyslav Khaniukov" ravelry-exporter.app
+      - cp -R ravelry-exporter.app dist/dmg/
+      - > 
+        create-dmg --volname "Ravelry Exporter"
+        --window-pos 200 120
+        --window-size 800 400
+        --icon-size 100
+        --icon "ravelry-exporter.app" 200 190
+        --icon "Applications" 600 190
+        --hide-extension "ravelry-exporter.app"
+        --app-drop-link 600 190
+        dist/RavelryExporter.dmg
+        dist/dmg/
